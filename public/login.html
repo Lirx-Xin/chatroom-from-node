@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.12.5/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.1.0/js/bootstrap.min.js"></script>
+</head>
+<style>
+    body{
+        /* background-color: #eaeaea; */
+		background-image: url(4fc50183dbb0e2467ade81718808f8f0.jpg);
+    }
+    .login-container{
+        min-width: 300px;
+        max-width: 440px;
+        width: 100%;
+        padding: 30px;
+        margin: 100px auto;
+    }
+    .cont-login{
+        background-color: white;
+        /*box-shadow:0px 2px 3px #AcAcAc;*/
+        padding: 30px 20px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    .toregis{
+        line-height: 50px;
+        background-color: #cccccc;
+        height: 50px;
+        text-align: center;
+    }
+	.form-group{
+		position: relative;
+	}
+	.form-group input{
+		padding-left: 28px;
+	}
+	.logimg{
+		position: absolute;
+		top: 9px;
+		left: 5px;
+	}
+    .btn{
+        height: 40px;
+		width: 30%;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+	.btn-login{
+		margin-right: 20px;
+	}
+</style>
+<body>
+<div class="login-container">
+    <div class="cont-login" id="showlog">
+        <h4>用户登录</h4>
+        <form style="margin-top: 30px">
+            <div class="form-group">
+                <!-- <label for="user">账号:</label> -->
+				<img class="logimg" src="guanbi.png" width="6%"/>
+                <input type="text" class="form-control" id="user">
+            </div>
+            <div class="form-group">
+                <!-- <label for="pwd">密码:</label> -->
+				<img class="logimg" src="dengluzhucemima.png" width="6%"/>
+                <input type="password" class="form-control" id="pwd">
+            </div>
+            <div style="text-align: center;">
+                <button type="button" class="btn btn-primary btn-login" id="login">登录</button>
+				<button type="button" class="btn btn-register" id="toregister">注册</button>
+            </div>
+        </form>
+    </div>
+    <!-- <div class="toregis">注册</div> -->
+	<div class="cont-login" id="showres" style="display: none">
+		<h4>用户注册</h4>
+		<form style="margin-top: 30px">
+		    <div class="form-group">
+		        <!-- <label for="user">账号:</label> -->
+				<img class="logimg" src="guanbi.png" width="6%"/>
+		        <input type="text" class="form-control" placeholder="请输入账号">
+		    </div>
+		    <div class="form-group">
+		        <!-- <label for="pwd">密码:</label> -->
+				<img class="logimg" src="dengluzhucemima.png" width="6%"/>
+		        <input type="password" class="form-control" placeholder="请输入密码">
+		    </div>
+			<div class="form-group">
+			    <!-- <label for="pwd">密码:</label> -->
+				<img class="logimg" src="nicheng.png" width="6%"/>
+			    <input type="password" class="form-control" placeholder="请输入昵称">
+			</div>
+		    <div style="text-align: center;">
+		        <button type="button" class="btn btn-primary btn-login">登录</button>
+				<button type="button" class="btn btn-register" id="register">注册</button>
+		    </div>
+		</form>
+	</div>
+</div>
+<script src="login.js" type="text/javascript"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "chatroom-from-node",
+  "version": "0.0.1",
+  "description": "node学习",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wushengdaoren/chatroom-from-node.git"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "Lirx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wushengdaoren/chatroom-from-node/issues"
+  },
+  "homepage": "https://github.com/wushengdaoren/chatroom-from-node#readme",
+  "dependencies": {
+    "mysql": "^2.16.0"
+  }
+}
