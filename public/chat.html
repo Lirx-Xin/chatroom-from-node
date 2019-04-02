@@ -1,150 +1,371 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<link rel="stylesheet" href="css/element-ui.css" />
-		<script type="text/javascript" src="js/vue.min.js"></script>
-		<script src="js/elemnt-ui.js"></script>
-		<title></title>
-		<style type="text/css">
-			body {
-				margin: 0;
-				padding: 0;
-			}
-			header {
-				box-sizing: border-box;
-				padding: 0 50px;
-				height: 50px;
-				background-color: #3d3d3d;
-				color: white;
-				font-size: 13px;
-			}
-			.aside {
-				width: 300px;
-				background-color: #EEEEEE;
-			}
-			.main {
-				display: flex;
-				flex-direction: column;
-				flex: 1;
-			}
-			.message {
-				overflow: auto;
-				padding: 15px;
-				background-color: #FAFAFA;
-				height: 430px;
-			}
-			.input-box {
-				flex: 1;
-				padding: 15px;
-				position: relative;
-			}
-			textarea{
-				width: 100%;height: 100%;resize: none;
-				box-sizing: border-box;
-				font-size: 15px;
-				border: none;
-			}
-			.action{
-				width: 100px;position: absolute;right: 30px;top: 70px;
-			}
-			.action button{
-				width: 80px;
-				color: white;
-				height: 30px;
-				border: none;
-				border-radius: 5px;
-				background-color: #3D3D3D;
-				line-height: 30px;
-			}
-			.addchatroom{
-				position: relative;
-				cursor: pointer;
-				padding-left: 20px;
-				font-size:13px;
-				line-height: 30px;
-				height: 30px;
-			}
-			.addchatroom i{
-				top: 7px;
-				right: 19px;
-				position: absolute;
-				font-size: 15px;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="app" style="width:1300px;margin: 0 auto;">
-			<header>
-				<div style="line-height: 50px">
-					<span style="text-align:left;margin-left:10px;">CATROOM</span>
-					<span style="float:right; margin-right:10px;"><span id="showusername">{{username}}</span> | <a href="javascript:;"
-						 onclick="CHAT.logout()" style="color:#fff;">退出</a></span>
+
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="css/element-ui.css" />
+	<script type="text/javascript" src="js/vue.min.js"></script>
+	<script src="js/elemnt-ui.js"></script>
+	<script src="http://127.0.0.1:3535/socket.io/socket.io.js"></script>
+	<title></title>
+	<style type="text/css">
+		body {
+			margin: 0;
+			padding: 0;
+		}
+
+		header {
+			box-sizing: border-box;
+			padding: 0 50px;
+			height: 50px;
+			background-color: #3d3d3d;
+			color: white;
+			font-size: 13px;
+		}
+
+		.aside {
+			width: 300px;
+			background-color: #EEEEEE;
+		}
+
+		.main {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+		}
+
+		.message {
+			overflow: auto;
+			padding: 15px;
+			background-color: #FAFAFA;
+			height: 430px;
+		}
+
+		.input-box {
+			flex: 1;
+			padding: 15px;
+			position: relative;
+		}
+
+		textarea {
+			outline: none;
+			width: 100%;
+			height: 100%;
+			resize: none;
+			box-sizing: border-box;
+			font-size: 15px;
+			border: none;
+		}
+
+		.action {
+			width: 100px;
+			position: absolute;
+			right: 30px;
+			top: 70px;
+		}
+
+		.action button {
+			width: 80px;
+			color: white;
+			height: 30px;
+			border: none;
+			border-radius: 5px;
+			background-color: #3D3D3D;
+			line-height: 30px;
+		}
+
+		.addchatroom {
+			position: relative;
+			cursor: pointer;
+			padding-left: 20px;
+			font-size: 13px;
+			line-height: 30px;
+			height: 30px;
+		}
+
+		.addchatroom i {
+			top: 7px;
+			right: 19px;
+			position: absolute;
+			font-size: 15px;
+		}
+
+		.users {
+			margin-top: 10px;
+			/* float: right; */
+			text-align: right;
+		}
+
+		.users>div {
+			max-width: 225px;
+			position: relative;
+			display: inline-block;
+			padding: 8px;
+			margin: 0 10px 0 12px;
+			text-align: left;
+			border-radius: 10px;
+			color: #fff;
+			box-shadow: inset 0 0 1px #007aff;
+			background-color: #007aff;
+			vertical-align: top;
+			word-break: break-all;
+		}
+		.users>div:before {
+			content: "";
+			position: absolute;
+			right: -5px;
+			top: 4px;
+			width: 0;
+			height: 0;
+			border-top: solid transparent;
+			border-left: 7px solid #007aff;
+			border-bottom: 4px solid transparent;
+		}
+
+		.service {
+			/* float: left; */
+			margin-top: 10px;
+		}
+
+		.service>div {
+			max-width: 225px;
+			display: inline-block;
+			position: relative;
+			padding: 12px;
+			margin: 0 20px 0 10px;
+			border-radius: 10px;
+			background-color: #fff;
+			box-shadow: inset 0 0 1px #fff;
+			vertical-align: top;
+		}
+
+		.service>span {
+			color: #006e9c;
+			font-weight: 700;
+			max-width: 60px;
+			height: 36px;
+			font-weight: normal;
+			font-size: 14px;
+			color: #999;
+			overflow: hidden;
+			float: left;
+		}
+
+		.service>div:before {
+			content: "";
+			position: absolute;
+			left: -5px;
+			top: 4px;
+			width: 0;
+			height: 0;
+			border-top: solid transparent;
+			border-right: 7px solid #fff;
+			border-bottom: 4px solid transparent;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="app" style="width:1300px;margin: 0 auto;">
+		<header>
+			<div style="line-height: 50px">
+				<span style="text-align:left;margin-left:10px;">CATROOM</span>
+				<span style="float:right; margin-right:10px;"><span id="showusername">{{username}}</span> | <a
+						href="javascript:;" onclick="CHAT.logout()" style="color:#fff;">退出</a></span>
+			</div>
+		</header>
+		<div id="container" style="display: flex;height:700px;box-sizing: border-box;">
+			<div id="" class="aside">
+				<div class="addchatroom" @click="addroom">
+					Add Chatroom&nbsp;&nbsp;<i class="el-icon-plus"></i>
 				</div>
-			</header>
-			<div id="container" style="display: flex;height:700px;box-sizing: border-box;">
-				<div id="" class="aside">
-					<div class="addchatroom">
-						Add Chatroom&nbsp;&nbsp;<i class="el-icon-plus"></i>
-					</div>
-					<el-menu default-active="2" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
-						<el-submenu index="1">
-							<template slot="title">
-								<span>User</span>
-							</template>
-							<el-menu-item index="1-1">选项1</el-menu-item>
+				<el-menu default-active="2" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+					<el-submenu index="1">
+						<template slot="title">
+							<span>User</span>
+						</template>
+						<el-menu-item v-for="(item,index) in items" :key="index" @click="checkuser(item.user)">{{item.user}}
+						</el-menu-item>
+						<!-- <el-menu-item index="1-1">选项1</el-menu-item>
 							<el-menu-item index="1-2">选项2</el-menu-item>
 							<el-menu-item index="1-3">选项3</el-menu-item>
-							<el-menu-item index="1-4">选项1</el-menu-item>
-						</el-submenu>
-						<el-submenu index="2">
-							<template slot="title">
-								<span>Chatroom</span>
-							</template>
-							<el-menu-item index="2-1">选项1</el-menu-item>
-							<el-menu-item index="2-2">选项2</el-menu-item>
-							<el-menu-item index="2-3">选项3</el-menu-item>
-							<el-menu-item index="2-4">选项1</el-menu-item>
-						</el-submenu>
-					</el-menu>
-				</div>
-				<div id="" class="main">
-					<div>
-						<div style="height: 50px;background-color: #f3f3f3;padding-left: 50px;line-height: 50px;" id="">
-							<span>
-								{{firename}}
-							</span>
-							</div>
-						<div class="message" id="">							
-						</div>
+							<el-menu-item index="1-4">选项1</el-menu-item> -->
+					</el-submenu>
+					<el-submenu index="2">
+						<template slot="title">
+							<span>Chatroom</span>
+						</template>
+						<el-menu-item index="2-1">选项1</el-menu-item>
+						<el-menu-item index="2-2">选项2</el-menu-item>
+						<el-menu-item index="2-3">选项3</el-menu-item>
+						<el-menu-item index="2-4">选项1</el-menu-item>
+					</el-submenu>
+				</el-menu>
+			</div>
+			<div id="" class="main">
+				<div>
+					<div style="height: 50px;background-color: #f3f3f3;padding-left: 50px;line-height: 50px;" id="">
+						<span>
+							{{firename}}
+						</span>
 					</div>
-					<div class="input-box">
-						<div style="width: 800px;height: 100%;" id="">
-							<textarea style="" type="text" name="content" id=""></textarea>
-						</div>
-						<div class="action" id="">
-							<button type="button">提交</button>
-						</div>
+					<div class="message">
+						<div v-for="(i,index) in messageDIv" :key="index" :class="i.action?'users':'service'" v-html="i.html"></div>
+					</div>
+				</div>
+				<div class="input-box">
+					<div style="width: 800px;height: 100%;" id="">
+						<textarea type="text" name="content" v-model="mesg" @keyup.enter="submit"></textarea>
+					</div>
+					<div class="action" id="">
+						<button type="button" @click="submit">提交</button>
 					</div>
 				</div>
 			</div>
 		</div>
-	</body>
-	<script type="text/javascript">
-		new Vue( {
-			el: "#app",
-			data: {
-				username:'少时诵诗书',
-				firename:'nihao'
+		<el-dialog title="addroom" :visible.sync="dialogFormVisible" width="30%">
+				<el-form :model="form">
+					<el-form-item label="roomname" :label-width="formLabelWidth">
+						<el-input v-model="form.roomname" autocomplete="off"></el-input>
+					</el-form-item>
+					<p>请选择需要添加的用户</p>
+					<el-checkbox-group 
+					v-model="checkedCities"
+					:min="1"
+					:max="10">
+					<el-checkbox v-for="city in cities" :label="city" :key="city">{{city}}</el-checkbox>
+				</el-checkbox-group>
+				</el-form>
+				<div slot="footer" class="dialog-footer">
+					<el-button @click="dialogFormVisible = false">取 消</el-button>
+					<el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+				</div>
+			</el-dialog>
+	</div>
+</body>
+<script type="text/javascript">
+	new Vue({
+		el: "#app",
+		data: {
+			userid: '',
+			username: '少时诵诗书',
+			firename: 'nihao',
+			mesg: '',
+			formLabelWidth:'120px',
+			dialogFormVisible:false,
+			checkedCities:[],
+			cities:['lilili','1212da','1eawd'],
+			form:{
+				roomname:''
 			},
-			methods: {
-				handleOpen( key, keyPath ) {
-					console.log( key, keyPath );
-				},
-				handleClose( key, keyPath ) {
-					console.log( key, keyPath );
-				}
+			items: [{
+				id: '1',
+				user: 'lili'
+			},
+			{
+				id: '1',
+				user: 'deded'
+			},
+			{
+				id: '1',
+				user: 'ssss'
 			}
-		} )
-	</script>
+			],
+			messageDIv: []
+		},
+		created() {
+			this.init()
+		},
+		methods: {
+			addroom(){
+				this.dialogFormVisible = true
+			},
+			handleOpen(key, keyPath) {
+				console.log(key, keyPath);
+			},
+			handleClose(key, keyPath) {
+				console.log(key, keyPath);
+			},
+			checkuser(user) {
+				this.firename = user
+			},
+			//提交聊天消息内容
+			submit() {
+				// var content = d.getElementById("content").value;
+				if (this.mesg != '') {
+					var obj = {
+						userid: this.userid,
+						username: this.username,
+						content: this.mesg
+					};
+					this.socket.emit('meg', obj);
+					this.mesg = '';
+				}
+				return false;
+			},
+			init() {
+				/*
+				客户端根据时间和随机数生成uid,这样使得聊天室用户名称可以重复。
+				实际项目中，如果是需要用户登录，那么直接采用用户的uid来做标识就可以
+				*/
+				var URL = document.URL
+
+				//分割成字符串
+				var getval = URL.split('?')[1];
+				var keyValue = getval.split('&');
+
+				this.userid = keyValue[0].split('=')[1];
+
+				this.username = decodeURI(keyValue[1].split('=')[1]);
+				console.log(this.username)
+				// d.getElementById("showusername").innerHTML = this.username;
+				//this.msgObj.style.minHeight = (this.screenheight - db.clientHeight + this.msgObj.clientHeight) + "px";
+				// this.scrollToBottom();
+
+				//连接websocket后端服务器
+				this.socket = io.connect('ws://127.0.0.1:3535');
+
+				//告诉服务器端有用户登录
+				this.socket.emit('login', { userid: this.userid, username: this.username });
+
+				//监听新用户登录
+				// this.socket.on('login', function(o){
+				// 	CHAT.updateSysMsg(o, 'login');	
+				// });
+
+				//监听用户退出
+				// this.socket.on('logout', function(o){
+				// 	CHAT.updateSysMsg(o, 'logout');
+				// });
+
+				//监听消息发送
+				var _this = this
+				this.socket.on('meg', function (obj) {
+					var isme = (obj.userid == _this.userid) ? true : false;
+					var contentDiv = '<div>' + obj.content + '</div>';
+					var usernameDiv = '<span>' + obj.username + '</span>';
+					console.log(contentDiv)
+					var section = document.createElement('section');
+					console.log(section)
+					var div = { action: isme, html: contentDiv + usernameDiv }
+					_this.messageDIv.push(div)
+					console.log(_this.messageDIv)
+					// if (isme) {
+					// 	section.className = 'user';
+					// 	section.innerHTML = contentDiv + usernameDiv;
+					// } else {
+					// 	section.className = 'service';
+					// 	section.innerHTML = usernameDiv + contentDiv;
+					// }
+					console.log(section)
+					// _this.message = section
+					// CHAT.msgObj.appendChild(section);
+					// CHAT.scrollToBottom();	
+				});
+
+			}
+		}
+	})
+</script>
+
 </html>
