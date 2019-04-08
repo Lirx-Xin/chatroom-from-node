@@ -12,6 +12,7 @@
 		body {
 			margin: 0;
 			padding: 0;
+			background-image: url(tiankong.jpg);
 		}
 
 		header {
@@ -42,6 +43,7 @@
 		}
 
 		.input-box {
+			background-color: white;
 			flex: 1;
 			padding: 15px;
 			position: relative;
@@ -184,7 +186,7 @@
 						<template slot="title">
 							<span>User</span>
 						</template>
-						<el-menu-item v-for="(item,index) in items" :key="index" @click="checkuser(item.user)">{{item.user}}
+						<el-menu-item v-for="(item,index) in items" :key="index" @click="checkuser(item.username)">{{item.username}}
 						</el-menu-item>
 						<!-- <el-menu-item index="1-1">选项1</el-menu-item>
 							<el-menu-item index="1-2">选项2</el-menu-item>
@@ -258,23 +260,15 @@
 			form:{
 				roomname:''
 			},
-			items: [{
-				id: '1',
-				user: 'lili'
-			},
-			{
-				id: '1',
-				user: 'deded'
-			},
-			{
-				id: '1',
-				user: 'ssss'
-			}
+			items: [
 			],
 			messageDIv: []
 		},
 		created() {
 			this.init()
+		},
+		mounted() {
+			this.getuser()
 		},
 		methods: {
 			addroom(){
@@ -289,6 +283,20 @@
 			checkuser(user) {
 				this.firename = user
 			},
+			getuser(){
+				var _this = this
+				var ajax = new XMLHttpRequest()
+				ajax.open( 'get', "http://127.0.0.1:3535/getuser", true )
+				ajax.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+				ajax.send()
+				ajax.onreadystatechange = function () {
+					if ( ajax.readyState === 4 && ajax.status === 200 ) {
+						var num = JSON.parse( ajax.responseText )
+						console.log(num)
+						_this.items = num
+					}
+				}
+			},
 			//提交聊天消息内容
 			submit() {
 				// var content = d.getElementById("content").value;
@@ -296,7 +304,8 @@
 					var obj = {
 						userid: this.userid,
 						username: this.username,
-						content: this.mesg
+						content: this.mesg,
+						firename:this.firename
 					};
 					this.socket.emit('meg', obj);
 					this.mesg = '';
@@ -341,6 +350,7 @@
 				//监听消息发送
 				var _this = this
 				this.socket.on('meg', function (obj) {
+					if(obj.firename == _this.username||obj.userid == _this.userid){
 					var isme = (obj.userid == _this.userid) ? true : false;
 					var contentDiv = '<div>' + obj.content + '</div>';
 					var usernameDiv = '<span>' + obj.username + '</span>';
@@ -357,10 +367,10 @@
 					// 	section.className = 'service';
 					// 	section.innerHTML = usernameDiv + contentDiv;
 					// }
-					console.log(section)
 					// _this.message = section
 					// CHAT.msgObj.appendChild(section);
-					// CHAT.scrollToBottom();	
+					// CHAT.scrollToBottom();
+						}
 				});
 
 			}

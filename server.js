@@ -127,6 +127,14 @@ app.post('/register', function (req, res) {
    })
 });
 
+app.get('/getuser',function(req,res){
+	var selsql = "select username from user";
+	connection.query(selsql,function(err, result){
+	   console.log(result)
+	   if(err) {console.log('[login ERROR] - ',err.message); return;}
+	   res.send(result)
+	   })
+})
 // http.on('request',function(req, res) {
 // 	// 定义了一个post变量，用于暂存请求体的信息
 // 	var post = '';
@@ -207,7 +215,7 @@ io.on('connection', function(socket){
 	socket.on('meg', function(obj){
 		//向所有客户端广播发布的消息
 		io.emit('meg', obj);
-		console.log(obj.username+'说：'+obj.content);
+		console.log(obj.username+'对'+obj.firename+'说：'+obj.content);
 	});
 
 });
