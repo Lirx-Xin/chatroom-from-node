@@ -122,19 +122,10 @@ app.post('/register', function (req, res) {
 						});
 					}
 			   })
-		   }	   
+		   }
 		})
    })
 });
-
-app.get('/getuser',function(req,res){
-	var selsql = "select username from user";
-	connection.query(selsql,function(err, result){
-	   console.log(result)
-	   if(err) {console.log('[login ERROR] - ',err.message); return;}
-	   res.send(result)
-	   })
-})
 // http.on('request',function(req, res) {
 // 	// 定义了一个post变量，用于暂存请求体的信息
 // 	var post = '';
@@ -170,6 +161,7 @@ app.get('/getuser',function(req,res){
  app.use(express.static('./public'));//设置静态文件目录
 //在线用户
 var onlineUsers = {};
+var useronline = []
 //当前在线人数
 var onlineCount = 0;
 
@@ -180,19 +172,31 @@ io.on('connection', function(socket){
 	socket.on('login', function(obj){
 		//将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到
 		socket.name = obj.userid;
-
+		var tem = {
+			userid:obj.userid,
+			username:obj.username
+		}
 		//检查在线列表，如果不在里面就加入
 		if(!onlineUsers.hasOwnProperty(obj.userid)) {
 			onlineUsers[obj.userid] = obj.username;
 			//在线人数+1
+			useronline.push(tem)
 			onlineCount++;
 		}
 
 		//向所有客户端广播用户加入
-		io.emit('login', {onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj});
+		io.emit('login', {useronline:useronline, onlineCount:onlineCount, user:obj});
 		console.log(obj.username+'加入了聊天室');
 	});
-
+//获取在线用户列表
+// app.get('/getuser',function(req,res){
+// 	console.log(onlineUsers)
+// 	var selsql = "select username from user";
+// 	connection.query(selsql,function(err, result){
+// 	   console.log(result)
+// 	   if(err) {console.log('[login ERROR] - ',err.message); return;}
+// 	   res.send(result)
+// })
 	//监听用户退出
 	socket.on('disconnect', function(){
 		//将退出的用户从在线列表中删除
@@ -202,6 +206,11 @@ io.on('connection', function(socket){
 
 			//删除
 			delete onlineUsers[socket.name];
+			for(var i in useronline){
+				if(useronline[i].userid == socket.name){
+					useronline.splice(i,1)
+				}
+			}
 			//在线人数-1
 			onlineCount--;
 

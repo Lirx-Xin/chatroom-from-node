@@ -181,12 +181,13 @@
 				<div class="addchatroom" @click="addroom">
 					Add Chatroom&nbsp;&nbsp;<i class="el-icon-plus"></i>
 				</div>
-				<el-menu default-active="2" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+				<el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
 					<el-submenu index="1">
 						<template slot="title">
 							<span>User</span>
 						</template>
-						<el-menu-item v-for="(item,index) in items" :key="index" @click="checkuser(item.username)">{{item.username}}
+						<el-menu-item v-for="(item,index) in items" @click="checkuser(item.username,index)" index="index">{{item.username}}
+						<i v-if="item.msgremind" class="el-icon-question"></i>
 						</el-menu-item>
 						<!-- <el-menu-item index="1-1">选项1</el-menu-item>
 							<el-menu-item index="1-2">选项2</el-menu-item>
@@ -205,14 +206,15 @@
 				</el-menu>
 			</div>
 			<div id="" class="main">
-				<div>
+				<div v-if="showwel" style="height: 480px;text-align: center;line-height: 480px;background-color: #EEEEEE">welcome to Chatroom</div>
+				<div v-for="(meg,index) in megs" :key="index" v-show="meg.show">
 					<div style="height: 50px;background-color: #f3f3f3;padding-left: 50px;line-height: 50px;" id="">
 						<span>
-							{{firename}}
+							{{meg.firename}}
 						</span>
 					</div>
 					<div class="message">
-						<div v-for="(i,index) in messageDIv" :key="index" :class="i.action?'users':'service'" v-html="i.html"></div>
+						<div v-for="(i,index) in meg.messageDIv" :key="index" :class="i.action?'users':'service'" v-html="i.html"></div>
 					</div>
 				</div>
 				<div class="input-box">
@@ -251,24 +253,25 @@
 		data: {
 			userid: '',
 			username: '少时诵诗书',
-			firename: 'nihao',
+			firename: '',
 			mesg: '',
+			showwel:'true',
 			formLabelWidth:'120px',
 			dialogFormVisible:false,
+			indexold:'',
 			checkedCities:[],
 			cities:['lilili','1212da','1eawd'],
 			form:{
 				roomname:''
 			},
-			items: [
-			],
-			messageDIv: []
+			items: [],
+			megs:[]
 		},
 		created() {
 			this.init()
 		},
 		mounted() {
-			this.getuser()
+			// this.getuser()
 		},
 		methods: {
 			addroom(){
@@ -280,8 +283,22 @@
 			handleClose(key, keyPath) {
 				console.log(key, keyPath);
 			},
-			checkuser(user) {
+			checkuser(user,index) {
+				if(this.items[index].msgremind == true){
+					this.items[index].msgremind = false
+				}
 				this.firename = user
+				if(typeof(this.indexold) == 'string'){
+					this.showwel = false
+					this.megs[index].show=true
+					this.indexold = index
+					console.log(this.indexold)
+				}else{
+					this.megs[this.indexold].show=false
+					this.megs[index].show=true
+					this.indexold = index
+					console.log(this.indexold)
+				}
 			},
 			getuser(){
 				var _this = this
@@ -294,6 +311,17 @@
 						var num = JSON.parse( ajax.responseText )
 						console.log(num)
 						_this.items = num
+						for(var i in _this.items){
+							_this.items[i].msgremind = false
+						}
+						for(var i=0;i<num.length;i++){
+							var tep = {
+								firename:num[i].username,
+								show:false,
+								messageDIv:[]
+							}
+							_this.megs.push(tep)
+						}
 					}
 				}
 			},
@@ -338,39 +366,79 @@
 				this.socket.emit('login', { userid: this.userid, username: this.username });
 
 				//监听新用户登录
-				// this.socket.on('login', function(o){
-				// 	CHAT.updateSysMsg(o, 'login');	
-				// });
+				this.socket.on('login', function(o){
+					var num = o.useronline
+					console.log(num)
+					_this.items=JSON.parse(JSON.stringify(num))
+					for(var i in _this.items){
+						_this.items[i].msgremind = false
+					}
+					if(_this.megs.length == 0){
+						for(var i=0;i<num.length;i++){
+							var tep = {
+								firename:num[i].username,
+								show:false,
+								messageDIv:[]
+							}
+							_this.megs.push(tep)
+						}	
+					}else{
+						var temp = {
+							firename:o.user.username,
+							show:false,
+							messageDIv:[]
+						}
+						_this.megs.push(temp)
+					}
+				});
 
 				//监听用户退出
-				// this.socket.on('logout', function(o){
-				// 	CHAT.updateSysMsg(o, 'logout');
-				// });
+				this.socket.on('logout', function(o){
+					for(var j in _this.items){
+						if(_this.items[j].username == o.user.username){
+							_this.items.splice(j,1);
+						}
+					}
+					for(var j in _this.megs){
+						if(_this.megs[j].firename == o.user.username){
+							_this.megs.splice(j,1);
+						}
+					}
+					if(_this.firename == o.user.username){
+						_this.showwel = true
+						_this.indexold = ''
+					}else{
+						for(var i in _this.items){
+							if(_this.firename == _this.items[i]){
+								_this.indexold = i
+							}
+						}
+					}
+				});
 
 				//监听消息发送
 				var _this = this
 				this.socket.on('meg', function (obj) {
-					if(obj.firename == _this.username||obj.userid == _this.userid){
 					var isme = (obj.userid == _this.userid) ? true : false;
 					var contentDiv = '<div>' + obj.content + '</div>';
 					var usernameDiv = '<span>' + obj.username + '</span>';
-					console.log(contentDiv)
-					var section = document.createElement('section');
-					console.log(section)
 					var div = { action: isme, html: contentDiv + usernameDiv }
-					_this.messageDIv.push(div)
-					console.log(_this.messageDIv)
-					// if (isme) {
-					// 	section.className = 'user';
-					// 	section.innerHTML = contentDiv + usernameDiv;
-					// } else {
-					// 	section.className = 'service';
-					// 	section.innerHTML = usernameDiv + contentDiv;
-					// }
-					// _this.message = section
-					// CHAT.msgObj.appendChild(section);
-					// CHAT.scrollToBottom();
+					if(obj.userid == _this.userid){
+						_this.megs[_this.indexold].messageDIv.push(div)
+					}else if(obj.firename == _this.username){
+						for(var i in _this.megs){
+							if(_this.megs[i].firename == obj.username){
+								_this.megs[i].messageDIv.push(div)
+							}
 						}
+						if(_this.firename != obj.username){
+							for(var j in _this.items){
+								if(_this.items[j].username == obj.username){
+									_this.items[j].msgremind = true
+								}
+							}
+						}
+					}
 				});
 
 			}
