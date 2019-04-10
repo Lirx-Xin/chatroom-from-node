@@ -81,12 +81,12 @@
 			cursor: pointer;
 			padding-left: 20px;
 			font-size: 13px;
-			line-height: 30px;
-			height: 30px;
+			line-height: 45px;
+			height: 45px;
 		}
 
 		.addchatroom i {
-			top: 7px;
+			top: 16px;
 			right: 19px;
 			position: absolute;
 			font-size: 15px;
@@ -164,6 +164,65 @@
 			border-right: 7px solid #fff;
 			border-bottom: 4px solid transparent;
 		}
+		.checkdiv{
+			float: left;width: 50%;overflow: auto;height: 100%;
+			box-sizing: border-box;
+		}
+        .checkdiv .el-checkbox{
+			box-sizing: border-box;
+			padding-left: 5px;
+			width: 100%;
+			height: 40px;
+			margin: 0;
+			line-height: 40px;
+			text-overflow: ellipsis;
+		}
+		.checkdiv .el-checkbox:hover{
+			background-color: #EEEEEE;
+		}
+		.el-dialog__body{
+			padding-top: 12px;
+			padding-bottom:10px;
+		}
+		.ischeck{
+			position: relative;
+			height: 40px;
+			line-height: 40px;
+			text-overflow: ellipsis;
+			padding-left: 20px;
+		}
+/* 		.ischeck:hover{
+			background-color: #EEEEEE;
+		} */
+		.icon{
+			position: absolute;
+			right: 10px;
+			top: 10px;
+			color: #DDDDDD;
+			font-size: 18px;
+		}
+		.icon:hover{
+			color: #BBBBBB;
+		}
+		.input-room{
+			margin-bottom: 20px;
+			padding-right: 20px;
+		}
+		.checkp{
+			padding-left: 20px;
+			margin: 0;
+			height: 40px;
+			line-height: 40px;
+			margin-bottom: 20px;
+		}
+		.dialog-foot{
+			display: inline-block;
+			width: 52%;
+			text-align: left;
+			font-size: 10px;
+			color: red;
+			right: 50%;
+		}
 	</style>
 </head>
 
@@ -227,22 +286,32 @@
 				</div>
 			</div>
 		</div>
-		<el-dialog title="addroom" :visible.sync="dialogFormVisible" width="30%">
-				<el-form :model="form">
-					<el-form-item label="roomname" :label-width="formLabelWidth">
-						<el-input v-model="form.roomname" autocomplete="off"></el-input>
-					</el-form-item>
-					<p>请选择需要添加的用户</p>
-					<el-checkbox-group 
-					v-model="checkedCities"
-					:min="1"
-					:max="10">
-					<el-checkbox v-for="city in cities" :label="city" :key="city">{{city}}</el-checkbox>
-				</el-checkbox-group>
-				</el-form>
+		<el-dialog title="addroom" :visible.sync="dialogFormVisible" @close="closeadd" width="30%">
+				<div style="height: 250px;">
+					<div class="checkdiv" style="border-right: 1px solid #EEEEEE;">
+						<div class="input-room" prop="pass">
+							<el-input v-model="roomname" placeholder="请输入房间名称"></el-input>
+						</div>
+						<el-checkbox-group
+							@change="checkthis"
+							v-model="checkuserlist"
+							:min="1">
+							<el-checkbox v-for="i in num" :label="i.userid" :key="i">{{i.username}}</el-checkbox>
+						</el-checkbox-group>
+					</div>
+					<div class="checkdiv">
+						<p class="checkp">请勾选需要添加的联系人</p>
+						<div class="ischeck" v-for="(c,index) in checkusername" :key="index">
+							{{c}}
+							<i @click="deleted(c)" class="icon el-icon-circle-close"></i>
+						</div>
+					</div>
+				</div>
 				<div slot="footer" class="dialog-footer">
+					<span class="dialog-foot" v-show="validator1">请输入房间名称</span>
+					<span class="dialog-foot" v-show="validator2">请至少选择一个对象</span>
 					<el-button @click="dialogFormVisible = false">取 消</el-button>
-					<el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
+					<el-button type="primary" @click="toaddchat">确 定</el-button>
 				</div>
 			</el-dialog>
 	</div>
@@ -255,17 +324,18 @@
 			username: '少时诵诗书',
 			firename: '',
 			mesg: '',
+			validator1:false,
+			validator2:false,
+			onlineUsers:{},
 			showwel:'true',
-			formLabelWidth:'120px',
 			dialogFormVisible:false,
 			indexold:'',
-			checkedCities:[],
-			cities:['lilili','1212da','1eawd'],
-			form:{
-				roomname:''
-			},
+			checkuserlist:[],
+			checkusername:[],
+			roomname:'',
 			items: [],
-			megs:[]
+			megs:[],
+			num:[]
 		},
 		created() {
 			this.init()
@@ -274,8 +344,57 @@
 			// this.getuser()
 		},
 		methods: {
+			checkthis(xx){
+				console.log(xx)
+				var arr = []
+				for(let i in xx){
+					arr.push(this.onlineUsers[xx[i]])
+				}
+				this.checkusername=arr
+			},
+			deleted(i){
+				var x = this.checkusername.indexOf(i)
+				this.checkusername.splice(x,1)
+				this.checkuserlist.splice(x,1)
+			},
 			addroom(){
 				this.dialogFormVisible = true
+				for(var i in this.num){ 
+					this.num[i].checked = false
+				}
+			},
+			closeadd(){
+				this.checkuserlist = []
+				this.checkusername = []
+				this.validator2 = false
+				this.validator1 = false
+				this.roomname = ''
+			},
+			toaddchat(){
+				if(this.roomname==''){
+					this.validator2 = false
+					this.validator1 = true
+					return
+				}else if(this.checkuserlist.length == 0){
+					this.validator1 = false
+					this.validator2 = true
+					return
+				}
+				var param = {
+					chatroom:this.roomname,
+					roomuser:this.checkuserlist
+				}
+				var _this = this
+				var ajax = new XMLHttpRequest()
+				ajax.open( 'post', "http://127.0.0.1:3535/addroom", true )
+				ajax.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+				ajax.send( JSON.stringify( param ) )
+				ajax.onreadystatechange = function () {
+					if ( ajax.readyState === 4 && ajax.status === 200 ) {
+						// var num = JSON.parse( ajax.responseText )
+						console.log( ajax.responseText )
+					}
+				}
 			},
 			handleOpen(key, keyPath) {
 				console.log(key, keyPath);
@@ -298,31 +417,6 @@
 					this.megs[index].show=true
 					this.indexold = index
 					console.log(this.indexold)
-				}
-			},
-			getuser(){
-				var _this = this
-				var ajax = new XMLHttpRequest()
-				ajax.open( 'get', "http://127.0.0.1:3535/getuser", true )
-				ajax.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-				ajax.send()
-				ajax.onreadystatechange = function () {
-					if ( ajax.readyState === 4 && ajax.status === 200 ) {
-						var num = JSON.parse( ajax.responseText )
-						console.log(num)
-						_this.items = num
-						for(var i in _this.items){
-							_this.items[i].msgremind = false
-						}
-						for(var i=0;i<num.length;i++){
-							var tep = {
-								firename:num[i].username,
-								show:false,
-								messageDIv:[]
-							}
-							_this.megs.push(tep)
-						}
-					}
 				}
 			},
 			//提交聊天消息内容
@@ -367,22 +461,22 @@
 
 				//监听新用户登录
 				this.socket.on('login', function(o){
-					var num = o.useronline
-					console.log(num)
-					_this.items=JSON.parse(JSON.stringify(num))
-					for(var i in _this.items){
+					_this.num = o.useronline
+					_this.onlineUsers = o.onlineUsers
+					_this.items=JSON.parse(JSON.stringify(_this.num))
+					for(var i in _this.items){ 
 						_this.items[i].msgremind = false
 					}
-					if(_this.megs.length == 0){
-						for(var i=0;i<num.length;i++){
+					if(_this.megs.length == 0){//登录者的客户端
+						for(var i=0;i<_this.num.length;i++){
 							var tep = {
-								firename:num[i].username,
+								firename:_this.num[i].username,
 								show:false,
 								messageDIv:[]
 							}
 							_this.megs.push(tep)
 						}	
-					}else{
+					}else{//已登录的客户端
 						var temp = {
 							firename:o.user.username,
 							show:false,
@@ -394,23 +488,23 @@
 
 				//监听用户退出
 				this.socket.on('logout', function(o){
-					for(var j in _this.items){
+					for(var j in _this.items){ //将退出用户从在线列表删除
 						if(_this.items[j].username == o.user.username){
 							_this.items.splice(j,1);
 						}
 					}
-					for(var j in _this.megs){
+					for(var j in _this.megs){ //将退出用户聊天框从列表删除
 						if(_this.megs[j].firename == o.user.username){
 							_this.megs.splice(j,1);
 						}
 					}
-					if(_this.firename == o.user.username){
+					if(_this.firename == o.user.username){//如果退出用户是当前用户聊天对象
 						_this.showwel = true
 						_this.indexold = ''
-					}else{
+					}else{//将当前打开的indexold修改为有用户退出后的index
 						for(var i in _this.items){
-							if(_this.firename == _this.items[i]){
-								_this.indexold = i
+							if(_this.firename == _this.items[i].username){
+								_this.indexold = +i
 							}
 						}
 					}
@@ -423,15 +517,15 @@
 					var contentDiv = '<div>' + obj.content + '</div>';
 					var usernameDiv = '<span>' + obj.username + '</span>';
 					var div = { action: isme, html: contentDiv + usernameDiv }
-					if(obj.userid == _this.userid){
+					if(obj.userid == _this.userid){//如果当前用户是此消息发送者
 						_this.megs[_this.indexold].messageDIv.push(div)
-					}else if(obj.firename == _this.username){
-						for(var i in _this.megs){
+					}else if(obj.firename == _this.username){//如果当前用户是消息接受者
+						for(var i in _this.megs){//在消息接收方客户端的消息发送者对应的消息框渲染
 							if(_this.megs[i].firename == obj.username){
 								_this.megs[i].messageDIv.push(div)
 							}
 						}
-						if(_this.firename != obj.username){
+						if(_this.firename != obj.username){//如果消息接受方当前打开的消息框不是此消息的发送者,给发送者昵称后加消息提示
 							for(var j in _this.items){
 								if(_this.items[j].username == obj.username){
 									_this.items[j].msgremind = true

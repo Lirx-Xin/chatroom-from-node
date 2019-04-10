@@ -84,9 +84,8 @@ app.post('/login',function (req,res) {//登录
    // console.log("rsp:"+response);
    //res.end(JSON.stringify(response));
 })
- //注册模块
 
- 
+ //注册模块
 app.post('/register', function (req, res) {
     req.on('data',function(data){
 		obj=JSON.parse(data);
@@ -125,6 +124,23 @@ app.post('/register', function (req, res) {
 		   }
 		})
    })
+});
+//新增房间
+app.post('/addroom',function (req,res) {//登录
+    req.on('data',function(data){
+        obj=JSON.parse(data);
+		console.log(obj.roomuser.toString())
+		 var addSql = 'INSERT INTO grouproom(roomname,roomuser) VALUES(?,?)';
+		 var  addSqlParams = [obj.chatroom,obj.roomuser.toString()];
+		res.set('Access-Control-Allow-Origin', '*')  // 允许任何一个域名访问
+		connection.query(addSql,addSqlParams,function (err, result) {
+			if(err){
+				console.log('[INSERT ERROR] - ',err.message);
+				return;//如果失败了就直接return不会继续下面的代码
+			}
+			res.send('收到')
+		})
+    })
 });
 // http.on('request',function(req, res) {
 // 	// 定义了一个post变量，用于暂存请求体的信息
@@ -185,7 +201,7 @@ io.on('connection', function(socket){
 		}
 
 		//向所有客户端广播用户加入
-		io.emit('login', {useronline:useronline, onlineCount:onlineCount, user:obj});
+		io.emit('login', {useronline:useronline, onlineUsers:onlineUsers, user:obj});
 		console.log(obj.username+'加入了聊天室');
 	});
 //获取在线用户列表
