@@ -129,16 +129,18 @@ app.post('/register', function (req, res) {
 app.post('/addroom',function (req,res) {//登录
     req.on('data',function(data){
         obj=JSON.parse(data);
+		var roomuser = obj.roomuser.toString()
 		console.log(obj.roomuser.toString())
 		 var addSql = 'INSERT INTO grouproom(roomname,roomuser) VALUES(?,?)';
-		 var  addSqlParams = [obj.chatroom,obj.roomuser.toString()];
+		 var  addSqlParams = [obj.chatroom,roomuser];
 		res.set('Access-Control-Allow-Origin', '*')  // 允许任何一个域名访问
 		connection.query(addSql,addSqlParams,function (err, result) {
 			if(err){
 				console.log('[INSERT ERROR] - ',err.message);
 				return;//如果失败了就直接return不会继续下面的代码
 			}
-			res.send('收到')
+			res.send({success:'00',message:'添加成功！'});
+			io.emit('addroom',{roomname:obj.chatroom,roomuser:roomuser});
 		})
     })
 });
@@ -204,15 +206,15 @@ io.on('connection', function(socket){
 		io.emit('login', {useronline:useronline, onlineUsers:onlineUsers, user:obj});
 		console.log(obj.username+'加入了聊天室');
 	});
-//获取在线用户列表
-// app.get('/getuser',function(req,res){
-// 	console.log(onlineUsers)
-// 	var selsql = "select username from user";
-// 	connection.query(selsql,function(err, result){
-// 	   console.log(result)
-// 	   if(err) {console.log('[login ERROR] - ',err.message); return;}
-// 	   res.send(result)
-// })
+//获取房间列表
+app.get('/getroom',function(req,res){
+	var selsql = "select * from grouproom";
+	connection.query(selsql,function(err, result){
+	   console.log(result)
+	   if(err) {console.log('[login ERROR] - ',err.message); return;}
+	   res.send(result)
+    })
+});
 	//监听用户退出
 	socket.on('disconnect', function(){
 		//将退出的用户从在线列表中删除

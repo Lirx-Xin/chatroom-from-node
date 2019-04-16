@@ -83,8 +83,8 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 			<div class="login" v-show="showlog">
 				<h1>Login</h1>
 				<form>
-					<input type="text" name="u" placeholder="Userid" required="required" v-model="usid" />
-					<input type="password" name="p" placeholder="Password" required="required" v-model="pwd" />
+					<input type="text" name="u" placeholder="Userid" required="required" v-model="usid" maxlength="10"/>
+					<input type="password" name="p" placeholder="Password" required="required" v-model="pwd" maxlength="10"/>
 					<button type="button" class="btn btn-primary btn-block btn-large" @click="login">Log in</button>
 					<div class="toregister"><a id="toregister" @click="showlog=false">to register</a></div>
 				</form>
@@ -92,9 +92,9 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 			<div class="login" v-show="!showlog">
 				<h1>register</h1>
 				<form>
-					<input type="text" name="u" placeholder="Userid" required="required" v-model="reusid" />
-					<input type="password" name="p" placeholder="Password" required="required" v-model="repwd" />
-					<input type="text" name="n" placeholder="Username" required="required" v-model="rename" />
+					<input type="text" name="u" placeholder="Userid" required="required" v-model="reusid" maxlength="10"/>
+					<input type="password" name="p" placeholder="Password" required="required" v-model="repwd" maxlength="10"/>
+					<input type="text" name="n" placeholder="Username" required="required" v-model="rename" maxlength="10"/>
 					<button type="button" class="btn btn-primary btn-block btn-large" @click="register">Register</button>
 					<div class="toregister"><a id="tologin" @click="showlog=true">to login</a></div>
 				</form>
