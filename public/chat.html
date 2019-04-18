@@ -34,8 +34,28 @@
 			flex-direction: column;
 			flex: 1;
 		}
-
+		.msghead{
+			height: 50px;background-color: #f0f0f0;padding-left: 50px;line-height: 50px;position: relative;
+		}
+		.msghead i{
+			font-size: 25px;
+			top: 13px;
+			position: absolute;
+			color: #666;
+			right: 40px;
+		}
+		.mesgroom{
+			display: flex;flex-direction: row;
+			background-color: #F5F5F5;
+		}
+		.mesgroom ul{
+			list-style: none;
+		}
+		.mesgroom ul li{
+			line-height: 30px;
+		}
 		.message {
+			flex: 1;
 			overflow: auto;
 			padding: 15px;
 			background-color: #FAFAFA;
@@ -131,6 +151,7 @@
 		}
 
 		.service>div {
+			min-height: 24px;
 			max-width: 225px;
 			display: inline-block;
 			position: relative;
@@ -140,6 +161,7 @@
 			background-color: #fff;
 			box-shadow: inset 0 0 1px #fff;
 			vertical-align: top;
+			word-break: break-all;
 		}
 
 		.service>span {
@@ -224,9 +246,14 @@
 			color: red;
 			right: 50%;
 		}
+		.fade-enter-active, .fade-leave-active {
+			transition: opacity 1s
+		}
+		.fade-enter, .fade-leave-to /* .fade-leave-active, 2.1.8 版本以下 */ {
+			opacity:0;
+		}
 	</style>
 </head>
-
 <body>
 	<div id="app" style="width:1300px;margin: 0 auto;">
 		<header>
@@ -246,7 +273,7 @@
 						<template slot="title">
 							<span>User</span>
 						</template>
-						<el-menu-item :index="index" v-for="(item,index) in items" :key="index" @click="checkuser(item.username,index)">{{item.username}}
+						<el-menu-item :index="item.userid" v-for="(item,index) in items" :key="index" @click="checkuser(item.username,index)">{{item.username}}
 						<i v-if="item.msgremind" class="el-icon-question"></i>
 						</el-menu-item>
 						<!-- <el-menu-item index="1-1">选项1</el-menu-item>
@@ -258,20 +285,40 @@
 						<template slot="title">
 							<span>Chatroom</span>
 						</template>
-						<el-menu-item  :index="index" v-for="(room,index) in rooms" :key="index">{{room.roomname}}</el-menu-item>
+						<el-menu-item  :index="index" v-for="(room,index) in rooms" :key="index" @click="checkroom(room.roomname,index)">{{room.roomname}}</el-menu-item>
 					</el-submenu>
 				</el-menu>
 			</div>
 			<div id="" class="main">
 				<div v-if="showwel" style="height: 480px;text-align: center;line-height: 480px;background-color: #EEEEEE">welcome to Chatroom</div>
 				<div v-for="(meg,index) in megs" :key="index" v-show="meg.show">
-					<div style="height: 50px;background-color: #f3f3f3;padding-left: 50px;line-height: 50px;" id="">
+					<div class="msghead">
 						<span>
 							{{meg.firename}}
 						</span>
 					</div>
-					<div class="message" :class="'classmeg':meg.show">
+					<div class="message">
 						<div v-for="(i,index) in meg.messageDIv" :key="index" :class="i.action?'users':'service'" v-html="i.html"></div>
+					</div>
+				</div>
+				<div v-for="(group,index) in groups" :key="index" v-show="group.show">
+					<div class="msghead">
+						<span>
+							{{group.roomname}}
+						</span>
+						<i @click="showuser(index)" class="el-icon-more"></i>
+					</div>
+					<div class="mesgroom">
+						<div class="message">
+							<div v-for="(i,index) in group.messageDIv" :key="index" :class="i.action?'users':'service'" v-html="i.html"></div>
+						</div>
+						<transition name = "fade">
+							<div style="width: 200px;" v-show="group.usershow">
+								<ul>
+									<li v-for="(g,index) in group.roomuser.split(',')">{{userlist[g]}}</li>
+								</ul>
+							</div>
+						</transition>
 					</div>
 				</div>
 				<div class="input-box">
@@ -300,7 +347,7 @@
 					<div class="checkdiv">
 						<p class="checkp">请勾选需要添加的联系人</p>
 						<div class="ischeck" v-for="(c,index) in checkusername" :key="index">
-							{{c}} 
+							{{c}}
 							<i @click="deleted(c)" class="icon el-icon-circle-close"></i>
 						</div>
 					</div>
@@ -321,6 +368,7 @@
 			userid: '',
 			username: '少时诵诗书',
 			firename: '',
+			chatroom:'',
 			mesg: '',
 			validator1:false,
 			validator2:false,
@@ -328,33 +376,40 @@
 			showwel:true,
 			dialogFormVisible:false,
 			indexold:'',
+			chatindexold:'',
 			checkuserlist:[],
 			checkusername:[],
 			roomname:'',
 			items: [],
 			megs:[],
+			groups:[],
 			num:[],
 			rooms:[],
-			scrollHeight:''
+			theroom:{},
+			userlist:{}
 		},
-// 		created() {
-// 			this.init()
-// 		},
-		mounted() {
+		created() {
 			this.init()
+		},
+		mounted() {
+			// this.init()
 			this.getroom()
+			this.getuser()
 		},
-		updated(){
-			this.scrollHeight = document.getElementsByClassName('message')[0].scrollHeight
-			console.log(this.scrollHeight)
-		},
-		watch:{
-			scrollHeight(newh,oldh){
-				var message = document.getElementsByClassName('message')[0]
-				message.scrollTop = message.scrollHeight
-			}
-		},
+// 		updated(){
+// 			this.scrollHeight = document.getElementsByClassName('message')[0].scrollHeight
+// 			console.log(this.scrollHeight)
+// 		},
+// 		watch:{
+// 			scrollHeight(newh,oldh){
+// 				var message = document.getElementsByClassName('message')[0]
+// 				message.scrollTop = message.scrollHeight
+// 			}
+// 		},
 		methods: {
+			showuser(i){
+				this.groups[i].usershow = !this.groups[i].usershow
+			},
 			checkthis(xx){
 				console.log(xx)
 				this.checkusername = []
@@ -390,6 +445,7 @@
 					this.validator2 = true
 					return
 				}
+				this.checkuserlist.push(this.userid)
 				var param = {
 					chatroom:this.roomname,
 					roomuser:this.checkuserlist
@@ -420,7 +476,20 @@
 			  },
 			open1() {
 				this.$message.error('房间添加失败！');
+			  },
+		    getuser(){
+			  var _this = this
+			  var ajax = new XMLHttpRequest()
+			  ajax.open( 'get', "http://127.0.0.1:3535/getuser", true )
+			  ajax.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+			  ajax.send()
+			  ajax.onreadystatechange = function () {
+			  	if ( ajax.readyState === 4 && ajax.status === 200 ) {
+			  		var num = JSON.parse( ajax.responseText )
+			  		_this.userlist = num
+			  	}
 			  }
+		    },
 			getroom(){
 				var _this = this
 				var ajax = new XMLHttpRequest()
@@ -435,6 +504,18 @@
 								_this.rooms.push(num[i])
 							}
 						}
+						for(var i=0;i<_this.rooms.length;i++){
+							var tep = {
+								roomuser:_this.rooms[i].roomuser,
+								roomname:_this.rooms[i].roomname,
+								show:false,
+								usershow:false,
+								messageDIv:[]
+							}
+							_this.groups.push(tep)
+							_this.theroom[_this.rooms[i].roomname] = _this.rooms[i].roomuser
+						}
+						console.log(_this.groups)
 					}
 				}
 			},
@@ -449,17 +530,49 @@
 					this.items[index].msgremind = false
 				}
 				this.firename = user
-				if(typeof(this.indexold) == 'string'){
-					this.showwel = false
-					this.megs[index].show=true
-					this.indexold = index
-					console.log(this.indexold)
-				}else{
+				if(typeof(this.indexold) == 'string'){//第一次点击用户
+					 if(typeof(this.chatindexold) == 'string'){//房间没打开
+						this.showwel = false
+						this.megs[index].show=true
+						this.indexold = index
+						console.log(this.indexold) 
+					 }else{
+						 this.chatroom = ''
+						 this.groups[this.chatindexold].show=false
+						 this.megs[index].show=true
+						 this.indexold = index
+						 this.chatindexold = ''
+					}
+					
+				}else{//点击另一个用户
 					this.megs[this.indexold].show=false
 					this.megs[index].show=true
 					this.indexold = index
 					console.log(this.indexold)
 				}
+			},
+			checkroom(room,index){
+// 				this.showwel = false
+				this.chatroom = room
+				if(typeof(this.indexold) != 'string' && this.showwel == false){
+					this.firename = ''
+					this.megs[this.indexold].show=false
+					this.indexold = ''
+					this.groups[index].show=true
+					this.chatindexold = index
+				}else{
+					if(typeof(this.chatindexold) == 'string'){
+						this.showwel = false
+						this.groups[index].show=true
+						this.chatindexold = index
+					}else{
+						this.groups[this.chatindexold].show=false
+						this.groups[index].show=true
+						this.chatindexold = index
+					}
+					
+				}
+				
 			},
 			//提交聊天消息内容
 			submit() {
@@ -469,9 +582,16 @@
 						userid: this.userid,
 						username: this.username,
 						content: this.mesg,
-						firename:this.firename
+						firename:this.firename,
+						roomname:this.chatroom
 					};
 					this.socket.emit('meg', obj);
+					var contentDiv = '<div>' + this.mesg + '</div>';
+					var usernameDiv = '<span>' + this.username + '</span>';
+					var div = { action: true, html: contentDiv + usernameDiv };
+					if(this.firename != '' && this.chatroom == ''){
+						this.megs[this.indexold].messageDIv.push(div)
+					}
 					this.mesg = '';
 				}
 				return false;
@@ -509,8 +629,15 @@
 
 				//监听新用户登录
 				this.socket.on('login', function(o){
-					_this.num = o.useronline
 					_this.onlineUsers = o.onlineUsers
+					console.log(o.useronline)
+					for(let i=0;i<o.useronline.length;i++){
+						if(o.useronline[i].userid == _this.userid){
+							o.useronline.splice(i,1)
+						}
+					}
+					console.log(o.useronline)
+					_this.num = o.useronline
 					_this.items=JSON.parse(JSON.stringify(_this.num))
 					for(var i in _this.items){
 						_this.items[i].msgremind = false
@@ -561,35 +688,68 @@
 				this.socket.on('addroom', function(o){
 					console.log(o)
 					_this.rooms.push(o)
+					var tep = {
+						roomname:o.roomname,
+						show:false,
+						messageDIv:[]
+					}
+					_this.groups.push(tep)
+					_this.theroom[o.roomname] = o.roomuser
 				})
 				//监听消息发送
 				var _this = this
 				this.socket.on('meg', function (obj) {
+					// var isme = (obj.userid == _this.userid) ? true : false;
+					var contentDiv = '<div>' + obj.content + '</div>';
+					var usernameDiv = '<span>' + obj.username + '</span>';
+					var div = { action: false, html: contentDiv + usernameDiv };
+					// if(obj.firename != '' && obj.roomname == ''){
+// 						if(obj.userid == _this.userid){//如果当前用户是此消息发送者
+// 							_this.megs[_this.indexold].messageDIv.push(div)
+						// }else if(obj.firename == _this.username){//如果当前用户是消息接受者
+							for(var i in _this.megs){//在消息接收方客户端的消息发送者对应的消息框渲染
+								if(_this.megs[i].firename == obj.username){
+									_this.megs[i].messageDIv.push(div)
+								}
+							}
+							if(_this.firename != obj.username){//如果消息接受方当前打开的消息框不是此消息的发送者,给发送者昵称后加消息提示
+								for(var j in _this.items){
+									if(_this.items[j].username == obj.username){
+										_this.items[j].msgremind = true
+									}
+								}
+							}
+						// }
+// 					}else{
+// 						if(obj.userid == _this.userid){//如果当前用户是此消息发送者
+// 							_this.groups[_this.chatindexold].messageDIv.push(div)
+// 						}else if(_this.theroom[obj.roomname].indexOf(_this.userid) != '-1'){
+// 							for(var i in _this.groups){//在消息接收方客户端的消息发送者对应的消息框渲染
+// 								if(_this.groups[i].roomname == obj.roomname){
+// 									_this.groups[i].messageDIv.push(div)
+// 								}
+// 							}
+// 						}
+// 					}
+					// _this.scrollToBottom()
+				});
+				this.socket.on('roommeg', function (obj) {
 					var isme = (obj.userid == _this.userid) ? true : false;
 					var contentDiv = '<div>' + obj.content + '</div>';
 					var usernameDiv = '<span>' + obj.username + '</span>';
-					var div = { action: isme, html: contentDiv + usernameDiv }
+					var div = { action: isme, html: contentDiv + usernameDiv };
 					if(obj.userid == _this.userid){//如果当前用户是此消息发送者
-						_this.megs[_this.indexold].messageDIv.push(div)
-					}else if(obj.firename == _this.username){//如果当前用户是消息接受者
-						for(var i in _this.megs){//在消息接收方客户端的消息发送者对应的消息框渲染
-							if(_this.megs[i].firename == obj.username){
-								_this.megs[i].messageDIv.push(div)
-							}
-						}
-						if(_this.firename != obj.username){//如果消息接受方当前打开的消息框不是此消息的发送者,给发送者昵称后加消息提示
-							for(var j in _this.items){
-								if(_this.items[j].username == obj.username){
-									_this.items[j].msgremind = true
-								}
+						_this.groups[_this.chatindexold].messageDIv.push(div)
+					}else if(_this.theroom[obj.roomname].indexOf(_this.userid) != '-1'){
+						for(var i in _this.groups){//在消息接收方客户端的消息发送者对应的消息框渲染
+							if(_this.groups[i].roomname == obj.roomname){
+								_this.groups[i].messageDIv.push(div)
 							}
 						}
 					}
-					// _this.scrollToBottom()
 				});
 			}
 		}
 	})
 </script>
-
 </html>

@@ -176,36 +176,6 @@ app.post('/addroom',function (req,res) {//登录
 // app.get('/index',function (req,res) {
 // 	res.send()
 // })
- app.use(express.static('./public'));//设置静态文件目录
-//在线用户
-var onlineUsers = {};
-var useronline = []
-//当前在线人数
-var onlineCount = 0;
-
-io.on('connection', function(socket){
-	console.log('a user connected');
-
-	//监听新用户加入
-	socket.on('login', function(obj){
-		//将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到
-		socket.name = obj.userid;
-		var tem = {
-			userid:obj.userid,
-			username:obj.username
-		}
-		//检查在线列表，如果不在里面就加入
-		if(!onlineUsers.hasOwnProperty(obj.userid)) {
-			onlineUsers[obj.userid] = obj.username;
-			//在线人数+1
-			useronline.push(tem)
-			onlineCount++;
-		}
-
-		//向所有客户端广播用户加入
-		io.emit('login', {useronline:useronline, onlineUsers:onlineUsers, user:obj});
-		console.log(obj.username+'加入了聊天室');
-	});
 //获取房间列表
 app.get('/getroom',function(req,res){
 	var selsql = "select * from grouproom";
@@ -215,6 +185,53 @@ app.get('/getroom',function(req,res){
 	   res.send(result)
     })
 });
+//获取所有用户
+app.get('/getuser',function(req,res){
+	var selsql = "select * from user";
+	connection.query(selsql,function(err, result){
+	   console.log(result)
+	   if(err) {console.log('[login ERROR] - ',err.message); return;}
+	   var ss = {}
+	   for(let i in result){
+		   ss[result[i].userid] = result[i].username
+	   }
+	   res.send(ss)
+    })
+});
+ app.use(express.static('./public'));//设置静态文件目录
+//在线用户
+var onlineUsers = {};
+var useronline = []
+//当前在线人数
+var onlineCount = 0;
+
+var arrAllSocket = {};
+
+io.on('connection', function(socket){
+	console.log('a user connected');
+	//监听新用户加入
+	socket.on('login', function(obj){
+		//将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到
+		socket.name = obj.userid;
+		
+		var tem = {
+			userid:obj.userid,
+			username:obj.username
+		}
+		//检查在线列表，如果不在里面就加入
+		if(!onlineUsers.hasOwnProperty(obj.userid)) {
+			onlineUsers[obj.userid] = obj.username;
+			arrAllSocket[obj.username] = socket.id
+			//在线人数+1
+			useronline.push(tem)
+			onlineCount++;
+		}
+
+		//向所有客户端广播用户加入
+		io.emit('login', {useronline:useronline, onlineUsers:onlineUsers, user:obj});
+		console.log(obj.username+'加入了聊天室');
+	});
+
 	//监听用户退出
 	socket.on('disconnect', function(){
 		//将退出的用户从在线列表中删除
@@ -224,6 +241,7 @@ app.get('/getroom',function(req,res){
 
 			//删除
 			delete onlineUsers[socket.name];
+			delete arrAllSocket[onlineUsers[socket.name]]
 			for(var i in useronline){
 				if(useronline[i].userid == socket.name){
 					useronline.splice(i,1)
@@ -240,9 +258,16 @@ app.get('/getroom',function(req,res){
 
 	//监听用户发布聊天内容
 	socket.on('meg', function(obj){
-		//向所有客户端广播发布的消息
-		io.emit('meg', obj);
-		console.log(obj.username+'对'+obj.firename+'说：'+obj.content);
+		
+		if(obj.firename != '' && obj.roomname == ''){//单聊
+			var target = arrAllSocket[obj.firename];
+			if (io.sockets.connected[target]) {
+				io.sockets.connected[target].emit("meg",obj);
+			}
+		}else{//向所有客户端广播发布的消息
+			io.emit('roommeg', obj);
+		}
+		console.log(obj.username+'对'+obj.firename+obj.roomname+'说：'+obj.content);
 	});
 
 });
