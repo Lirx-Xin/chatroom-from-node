@@ -3,6 +3,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var htp = require('http');
 var qs = require('querystring');
+var sd = require('silly-datetime');
 var io = require('socket.io')(http);
 var express=require('express');
 var mysql  = require('mysql');
@@ -42,7 +43,8 @@ var connection = mysql.createConnection({
 	user     : 'root',
 	password : '123456789',
 	port: '3306',
-	database: 'chatroom'
+	database: 'chatroom',
+	dateStrings:'true'
 });
 connection.connect();
 // var user = []
@@ -141,6 +143,24 @@ app.post('/addroom',function (req,res) {//登录
 			}
 			res.send({success:'00',message:'添加成功！'});
 			io.emit('addroom',{roomname:obj.chatroom,roomuser:roomuser});
+		})
+    })
+});
+//获取聊天记录
+app.post('/getmesg',function (req,res) {//登录
+    req.on('data',function(data){
+        obj=JSON.parse(data);
+		var selsql = "Select * from message where (UN='"+obj.username+"' and FN='"+obj.firename+"') or (UN='"+obj.firename+"'and FN='"+obj.username+"')";
+		var selchat = "select * from message where FN='"+obj.roomname+"'";
+		var sel = (obj.firename != '' && obj.roomname === '')?selsql:selchat;
+		res.set('Access-Control-Allow-Origin', '*')  // 允许任何一个域名访问
+		connection.query(sel,function (err, result) {
+			if(err){
+				console.log('[Select ERROR] - ',err.message);
+				return;//如果失败了就直接return不会继续下面的代码
+			}
+			console.log(result)
+			res.send(result);
 		})
     })
 });
@@ -259,7 +279,15 @@ io.on('connection', function(socket){
 	//监听用户发布聊天内容
 	socket.on('meg', function(obj){
 		
-		if(obj.firename != '' && obj.roomname == ''){//单聊
+		// var mydate = sd.format(new Date(), 'YYYY-MM-DD HH:mm:ss');
+		console.log(obj.date)
+		var addSql = 'INSERT INTO message(UN,FN,Content,Time) VALUES(?,?,?,?)';
+		var fire = (obj.firename != '' && obj.roomname === '')?obj.firename:obj.roomname;
+		var  addSqlParams = [obj.username,fire,obj.content,obj.date];
+		connection.query(addSql,addSqlParams,function (err, result) {
+			if(err) {console.log('[login ERROR] - ',err.message); return;}
+		})
+		if(obj.firename != '' && obj.roomname === ''){//单聊
 			var target = arrAllSocket[obj.firename];
 			if (io.sockets.connected[target]) {
 				io.sockets.connected[target].emit("meg",obj);
@@ -269,7 +297,6 @@ io.on('connection', function(socket){
 		}
 		console.log(obj.username+'对'+obj.firename+obj.roomname+'说：'+obj.content);
 	});
-
 });
 
 http.listen(3535, '127.0.0.1',function(){
