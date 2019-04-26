@@ -15,9 +15,23 @@ body {
 
 		.aside {
 			width: 300px;
-			background-color: #EEEEEE;
+			background-color: #E5E5E5;
 		}
-
+		.classa{
+			font-size: 10px;
+			color: #409EFF;
+		}
+		.classb{
+			font-size: 10px;
+			color: #AAAAAA;
+		}
+		.class-i{
+			float: right;
+			margin-top: 17px;
+		}
+		.el-menu-item i{
+			color: #F74114;
+		}
 		.main {
 			display: flex;
 			flex-direction: column;
@@ -27,7 +41,8 @@ body {
 			text-align: center;line-height: 600px;background-color: #fbfbfb;flex: 1;font-size: 30px;
 		}
 		.msghead{
-			height: 50px;background-color: #f0f0f0;padding-left: 50px;line-height: 50px;position: relative;
+			height: 50px;background-color: #f8f8f8;padding-left: 50px;line-height: 50px;position: relative;
+			border-bottom: 1px solid #E8E8E8;
 		}
 		.msghead i{
 			font-size: 25px;
@@ -50,11 +65,14 @@ body {
 			flex: 1;
 			overflow: auto;
 			padding: 15px;
-			background-color: #FAFAFA;
+			background-color: #F8F8F8;
 			height: 400px;
 		}
-
+		.member{
+			width: 200px;border-left: 1px solid #EEEEEE;
+		}
 		.input-box {
+			border-top: 1px solid #EEEEEE;
 			background-color: white;
 			flex: 1;
 			padding: 45px 25px;
@@ -79,10 +97,33 @@ body {
 
 		.action {
 			width: 100px;
-			position: absolute;
+			float: right;
+			position: relative;
 			right: 40px;
 		}
-
+		.prompt{
+			position: absolute;
+			right: -5px;
+			bottom: 40px;
+			background-color: #eeeeee;
+			border-radius: 3px;
+			width: 145px;
+			text-align: center;
+			font-size: 13px;
+			line-height: 45px;
+			height: 45px;
+		}
+		.prompt::after{
+			    content: '';
+				position: absolute;
+				width: 0;
+				right: 22px;
+				height: 0;
+				bottom: -7px;
+				border-top: 7px solid #f1f1f1;
+				border-left: 7px solid white;
+				border-right: 7px solid white;
+		}
 		.action button {
 			width: 82px;
 			color: #555555;
@@ -94,7 +135,7 @@ body {
 		}
         .action button:hover{
 			color: white;
-			background-color: #4d4d4d;
+			background-color: #67C23A;
 		}
 		.addchatroom {
 			position: relative;
@@ -119,16 +160,17 @@ body {
 		}
 
 		.users>div {
+			min-height: 24px;
 			max-width: 225px;
 			position: relative;
 			display: inline-block;
-			padding: 8px;
+			padding: 12px;
 			margin: 0 10px 0 12px;
 			text-align: left;
 			border-radius: 10px;
 			color: #fff;
-			box-shadow: inset 0 0 1px #007aff;
-			background-color: #007aff;
+			box-shadow: inset 0 0 1px #67C23A;
+			background-color: #67C23A;
 			vertical-align: top;
 			word-break: break-all;
 		}
@@ -140,7 +182,7 @@ body {
 			width: 0;
 			height: 0;
 			border-top: solid transparent;
-			border-left: 7px solid #007aff;
+			border-left: 7px solid #67C23A;
 			border-bottom: 4px solid transparent;
 		}
 
@@ -153,6 +195,7 @@ body {
 			min-height: 24px;
 			max-width: 225px;
 			display: inline-block;
+			border: 1px solid #f1f1f1;
 			position: relative;
 			padding: 12px;
 			margin: 0 20px 0 10px;
@@ -246,7 +289,7 @@ body {
 			right: 50%;
 		}
 		.dislogmsg{
-			height: 550px;overflow-y: auto;
+			height: 500px;overflow-y: auto;
 		}
 		.lists{
 			border-bottom: 1px solid #EEEEEE;padding: 13px 5px;

@@ -3,7 +3,6 @@ var app = require('express')();
 var http = require('http').Server(app);
 var htp = require('http');
 var qs = require('querystring');
-var sd = require('silly-datetime');
 var io = require('socket.io')(http);
 var express=require('express');
 var mysql  = require('mysql');
@@ -114,7 +113,7 @@ app.post('/addroom',function (req,res) {//登录
     })
 });
 //获取聊天记录
-app.post('/getmesg',function (req,res) {//登录
+app.post('/getmesg',function (req,res) {
     req.on('data',function(data){
         obj=JSON.parse(data);
 		var selsql = "Select * from message where (UN='"+obj.username+"' and FN='"+obj.firename+"') or (UN='"+obj.firename+"'and FN='"+obj.username+"')";
@@ -135,6 +134,7 @@ app.post('/getmesg',function (req,res) {//登录
 //获取房间列表
 app.get('/getroom',function(req,res){
 	var selsql = "select * from grouproom";
+	res.set('Access-Control-Allow-Origin', '*')  // 允许任何一个域名访问
 	connection.query(selsql,function(err, result){
 	   console.log(result)
 	   if(err) {console.log('[login ERROR] - ',err.message); return;}
@@ -143,7 +143,8 @@ app.get('/getroom',function(req,res){
 });
 //获取所有用户
 app.get('/getuser',function(req,res){
-	var selsql = "select * from user";
+	res.set('Access-Control-Allow-Origin', '*')  // 允许任何一个域名访问
+	var selsql = "select userid,username from user";
 	connection.query(selsql,function(err, result){
 	   console.log(result)
 	   if(err) {console.log('[login ERROR] - ',err.message); return;}
@@ -151,13 +152,12 @@ app.get('/getuser',function(req,res){
 	   for(let i in result){
 		   ss[result[i].userid] = result[i].username
 	   }
-	   res.send(ss)
+	   res.send({'result':result,'user':ss})
     })
 });
  app.use(express.static('./public'));//设置静态文件目录
 //在线用户
 var onlineUsers = {};
-var useronline = []
 //当前在线人数
 var onlineCount = 0;
 //在线用户的socketid集合
@@ -167,24 +167,31 @@ io.on('connection', function(socket){
 	console.log('a user connected');
 	//监听新用户加入
 	socket.on('login', function(obj){
+		var select = "select * from CACHEMSG where firename = '"+obj.username+"'";
+		connection.query(select,function(err, result){
+			if(err) {console.log('[select ERROR] - ',err.message); return;}
+			if(result.length != 0){
+				for(let i of result){
+					io.sockets.connected[socket.id].emit("meg",i);
+				}
+				var delSql = "DELETE FROM CACHEMSG where firename = '"+obj.username+"'";
+				connection.query(delSql,function (err, result) {
+					if(err) {console.log('[DELETE ERROR] - ',err.message); return;}
+				})
+			}
+		})
 		//将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到
 		socket.name = obj.userid;
-		
-		var tem = {
-			userid:obj.userid,
-			username:obj.username
-		}
 		//检查在线列表，如果不在里面就加入
 		if(!onlineUsers.hasOwnProperty(obj.userid)) {
 			onlineUsers[obj.userid] = obj.username;
 			arrAllSocket[obj.username] = socket.id
 			//在线人数+1
-			useronline.push(tem)
 			onlineCount++;
 		}
 
 		//向所有客户端广播用户加入
-		io.emit('login', {useronline:useronline, onlineUsers:onlineUsers, user:obj});
+		io.emit('login', {onlineUsers:onlineUsers, user:obj});
 		console.log(obj.username+'加入了聊天室');
 	});
 
@@ -198,11 +205,6 @@ socket.on('disconnect', function(){
 			//删除
 			delete onlineUsers[socket.name];
 			delete arrAllSocket[onlineUsers[socket.name]]
-			for(var i in useronline){
-				if(useronline[i].userid == socket.name){
-					useronline.splice(i,1)
-				}
-			}
 			//在线人数-1
 			onlineCount--;
 
@@ -214,8 +216,6 @@ socket.on('disconnect', function(){
 
 	//监听用户发布聊天内容
 socket.on('meg', function(obj){
-		
-		// var mydate = sd.format(new Date(), 'YYYY-MM-DD HH:mm:ss');
 		console.log(obj.date)
 		var addSql = 'INSERT INTO message(UN,FN,Content,Time) VALUES(?,?,?,?)';
 		var fire = (obj.firename != '' && obj.roomname === '')?obj.firename:obj.roomname;
@@ -225,8 +225,14 @@ socket.on('meg', function(obj){
 		})
 		if(obj.firename != '' && obj.roomname === ''){//单聊
 			var target = arrAllSocket[obj.firename];
-			if (io.sockets.connected[target]) {
+			console.log(io.sockets.connected[target])
+			if (io.sockets.connected[target]) {//对方在线
 				io.sockets.connected[target].emit("meg",obj);
+			}else{//对方不在线
+				var inSql = 'INSERT INTO CACHEMSG(username,firename,content) VALUES(?,?,?)';
+				connection.query(inSql,[obj.username,obj.firename,obj.content],function (err, result) {
+					if(err) {console.log('[login ERROR] - ',err.message); return;}
+				})
 			}
 		}else{//向所有客户端广播发布的消息
 			io.emit('roommeg', obj);

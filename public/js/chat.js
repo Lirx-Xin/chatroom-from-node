@@ -9,10 +9,10 @@ new Vue({
 			mesg: '',
 			validator1:false,
 			validator2:false,
-			onlineUsers:{},
 			showwel:true,
 			dialogFormVisible:false,
 			dialogVisible:false,
+			prompt:false,
 			indexold:'',
 			chatindexold:'',
 			checkuserlist:[],
@@ -21,7 +21,6 @@ new Vue({
 			items: [],
 			megs:[],
 			groups:[],
-			num:[],
 			rooms:[],
 			theroom:{},
 			userlist:{},
@@ -92,7 +91,7 @@ new Vue({
 				console.log(xx)
 				this.checkusername = []
 				for(let i in xx){
-					this.checkusername.push(this.onlineUsers[xx[i]])
+					this.checkusername.push(this.userlist[xx[i]])
 				}
 			},
 			deleted(i){
@@ -102,9 +101,6 @@ new Vue({
 			},
 			addroom(){
 				this.dialogFormVisible = true
-				for(var i in this.num){ 
-					this.num[i].checked = false
-				}
 			},
 			closeadd(){
 				this.checkuserlist = []
@@ -164,7 +160,28 @@ new Vue({
 			  ajax.onreadystatechange = function () {
 			  	if ( ajax.readyState === 4 && ajax.status === 200 ) {
 			  		var num = JSON.parse( ajax.responseText )
-			  		_this.userlist = num
+					console.log(ajax.responseText)
+			  		_this.userlist = num.user
+					var numresult = num.result
+					for(let i in numresult){
+						if(numresult[i].username === _this.username){
+							numresult.splice(i,1)
+							break
+						}
+					}
+					for(let j of numresult){
+						j.online = '[下线]'
+						j.msgremind = false
+					}
+					_this.items = numresult
+					for(var i=0;i<_this.items.length;i++){
+						var tep = {
+							firename:_this.items[i].username,
+							show:false,
+							messageDIv:[]
+						}
+						_this.megs.push(tep)
+					}
 			  	}
 			  }
 		    },
@@ -251,12 +268,21 @@ new Vue({
 					
 				}
 			},
+			logout(){
+				this.socket.disconnect()
+				// window.location.href="/"
+				window.location.replace("/")
+			},
 			//提交聊天消息内容
 			submit() {
-				// var content = d.getElementById("content").value;
-				if (this.mesg != '') {
-// 					var date = new Date();
-// 					date.setHours(date.getHours() + 8);
+				if(this.mesg === '\n' || this.mesg === ''){
+					this.prompt = true
+					this.mesg = ''
+					var _this = this
+					setTimeout(function(){
+						_this.prompt = false
+					},2000)
+				}else{
 					var obj = {
 						userid: this.userid,
 						username: this.username,
@@ -292,7 +318,7 @@ new Vue({
 // 					var message = document.getElementsByClassName('message')[0]
 // 					message.scrollTop = message.scrollHeight
 // 				};
-				//分割成字符串
+				//分割成字符串  
 				var getval = document.URL.split('?')[1];
 				var keyValue = getval.split('&');
 
@@ -312,60 +338,73 @@ new Vue({
 
 				//监听新用户登录
 				this.socket.on('login', function(o){
-					_this.onlineUsers = o.onlineUsers
-					console.log(o.useronline)
-					for(let i=0;i<o.useronline.length;i++){
-						if(o.useronline[i].userid == _this.userid){
-							o.useronline.splice(i,1)
+					console.log(o.onlineUsers)
+					for(let i of _this.items){
+						if(o.onlineUsers[i.userid]){
+							i.online = '[在线]'
 						}
 					}
-					console.log(o.useronline)
-					_this.num = o.useronline
-					_this.items=JSON.parse(JSON.stringify(_this.num))
-					for(var i in _this.items){
-						_this.items[i].msgremind = false
-					}
-					if(_this.megs.length == 0){//登录者的客户端
-						for(var i=0;i<_this.num.length;i++){
-							var tep = {
-								firename:_this.num[i].username,
-								show:false,
-								messageDIv:[]
-							}
-							_this.megs.push(tep)
-						}
-					}else{//已登录的客户端
-						var temp = {
-							firename:o.user.username,
-							show:false,
-							messageDIv:[]
-						}
-						_this.megs.push(temp)
-					}
+// 					_this.onlineUsers = o.onlineUsers
+// 					console.log(o.useronline)
+// 					for(let i=0;i<o.useronline.length;i++){
+// 						if(o.useronline[i].userid == _this.userid){
+// 							o.useronline.splice(i,1)
+// 						}
+// 					}
+// 					console.log(o.useronline)
+// 					_this.num = o.useronline
+// 					console.log(_this.num)
+					// _this.items=JSON.parse(JSON.stringify(_this.num))
+// 					for(var i in _this.items){
+// 						_this.items[i].msgremind = false
+// 					}
+// 					if(_this.megs.length == 0){//登录者的客户端
+// 						for(var i=0;i<_this.num.length;i++){
+// 							var tep = {
+// 								firename:_this.num[i].username,
+// 								show:false,
+// 								messageDIv:[]
+// 							}
+// 							_this.megs.push(tep)
+// 						}
+// 					}else{//已登录的客户端
+// 						var temp = {
+// 							firename:o.user.username,
+// 							show:false,
+// 							messageDIv:[]
+// 						}
+// 						_this.megs.push(temp)
+// 					}
 				});
 
 				//监听用户退出
 				this.socket.on('logout', function(o){
-					for(var j in _this.items){ //将退出用户从在线列表删除
-						if(_this.items[j].username == o.user.username){
-							_this.items.splice(j,1);
+					console.log(o.onlineUsers)
+					for(let j of _this.items){
+						if(j.username === o.user.username){
+							j.online = '[下线]'
 						}
 					}
-					for(var j in _this.megs){ //将退出用户聊天框从列表删除
-						if(_this.megs[j].firename == o.user.username){
-							_this.megs.splice(j,1);
-						}
-					}
-					if(_this.firename == o.user.username){//如果退出用户是当前用户聊天对象
-						_this.showwel = true
-						_this.indexold = ''
-					}else{//将当前打开的indexold修改为有用户退出后的index
-						for(var i in _this.items){
-							if(_this.firename == _this.items[i].username){
-								_this.indexold = +i
-							}
-						}
-					}
+// 					for(var j in _this.items){ //将退出用户从在线列表删除
+// 						if(_this.items[j].username == o.user.username){
+// 							_this.items.splice(j,1);
+// 						}
+// 					}
+// 					for(var j in _this.megs){ //将退出用户聊天框从列表删除
+// 						if(_this.megs[j].firename == o.user.username){
+// 							_this.megs.splice(j,1);
+// 						}
+// 					}
+// 					if(_this.firename == o.user.username){//如果退出用户是当前用户聊天对象
+// 						_this.showwel = true
+// 						_this.indexold = ''
+// 					}else{//将当前打开的indexold修改为有用户退出后的index
+// 						for(var i in _this.items){
+// 							if(_this.firename == _this.items[i].username){
+// 								_this.indexold = +i
+// 							}
+// 						}
+// 					}
 				});
 				//监听新增房间
 				this.socket.on('addroom', function(o){
@@ -373,7 +412,9 @@ new Vue({
 					_this.rooms.push(o)
 					var tep = {
 						roomname:o.roomname,
+						roomuser:o.roomuser,
 						show:false,
+						usershow:false,
 						messageDIv:[]
 					}
 					_this.groups.push(tep)
@@ -382,40 +423,24 @@ new Vue({
 				//监听消息发送
 				var _this = this
 				this.socket.on('meg', function (obj) {
+					console.log(obj)
 					// var isme = (obj.userid == _this.userid) ? true : false;
 					var contentDiv = '<div>' + obj.content + '</div>';
 					var usernameDiv = '<span>' + obj.username + '</span>';
 					var div = { action: false, html: contentDiv + usernameDiv };
-					// if(obj.firename != '' && obj.roomname == ''){
-// 						if(obj.userid == _this.userid){//如果当前用户是此消息发送者
-// 							_this.megs[_this.indexold].messageDIv.push(div)
-						// }else if(obj.firename == _this.username){//如果当前用户是消息接受者
-							for(var i in _this.megs){//在消息接收方客户端的消息发送者对应的消息框渲染
-								if(_this.megs[i].firename == obj.username){
-									_this.megs[i].messageDIv.push(div)
-									_this.scrollToBottom(i)
-								}
+					for(var i in _this.megs){//在消息接收方客户端的消息发送者对应的消息框渲染
+						if(_this.megs[i].firename == obj.username){
+							_this.megs[i].messageDIv.push(div)
+							_this.scrollToBottom(i)
+						}
+					}
+					if(_this.firename != obj.username){//如果消息接受方当前打开的消息框不是此消息的发送者,给发送者昵称后加消息提示
+						for(var j in _this.items){
+							if(_this.items[j].username == obj.username){
+								_this.items[j].msgremind = true
 							}
-							if(_this.firename != obj.username){//如果消息接受方当前打开的消息框不是此消息的发送者,给发送者昵称后加消息提示
-								for(var j in _this.items){
-									if(_this.items[j].username == obj.username){
-										_this.items[j].msgremind = true
-									}
-								}
-							}
-						// }
-// 					}else{
-// 						if(obj.userid == _this.userid){//如果当前用户是此消息发送者
-// 							_this.groups[_this.chatindexold].messageDIv.push(div)
-// 						}else if(_this.theroom[obj.roomname].indexOf(_this.userid) != '-1'){
-// 							for(var i in _this.groups){//在消息接收方客户端的消息发送者对应的消息框渲染
-// 								if(_this.groups[i].roomname == obj.roomname){
-// 									_this.groups[i].messageDIv.push(div)
-// 								}
-// 							}
-// 						}
-// 					}
-					// _this.scrollToBottom()
+						}
+					}
 				});
 				this.socket.on('roommeg', function (obj) {
 					var isme = (obj.userid == _this.userid) ? true : false;

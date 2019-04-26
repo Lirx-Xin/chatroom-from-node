@@ -99,7 +99,7 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 					<div class="toregister"><a id="tologin" @click="showlog=true">to login</a></div>
 				</form>
 			</div>
-		</div>
+		</div>	
 		<script type="text/javascript">
 			new Vue( {
 				el: '#app',
@@ -127,7 +127,7 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 								var num = JSON.parse( ajax.responseText )
 								console.log( num )
 								if ( num.success == '00' ) {
-									window.location.href = "http://127.0.0.1:3535/chat.html?" + "userid=" + _this.usid + "&username=" + num.param[0].username;
+									window.location.href = "/chat.html?" + "userid=" + _this.usid + "&username=" + num.param[0].username;
 								}
 							}
 						}
