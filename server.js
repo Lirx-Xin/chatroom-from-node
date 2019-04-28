@@ -168,14 +168,14 @@ io.on('connection', function(socket){
 	//监听新用户加入
 	socket.on('login', function(obj){
 		var select = "select * from CACHEMSG where firename = '"+obj.username+"'";
-		connection.query(select,function(err, result){
+		connection.query(select,function(err, result){//查询该用户是否有未收到的消息
 			if(err) {console.log('[select ERROR] - ',err.message); return;}
 			if(result.length != 0){
-				for(let i of result){
+				for(let i of result){//逐条发送
 					io.sockets.connected[socket.id].emit("meg",i);
 				}
 				var delSql = "DELETE FROM CACHEMSG where firename = '"+obj.username+"'";
-				connection.query(delSql,function (err, result) {
+				connection.query(delSql,function (err, result) {//删除已读消息
 					if(err) {console.log('[DELETE ERROR] - ',err.message); return;}
 				})
 			}
@@ -228,7 +228,7 @@ socket.on('meg', function(obj){
 			console.log(io.sockets.connected[target])
 			if (io.sockets.connected[target]) {//对方在线
 				io.sockets.connected[target].emit("meg",obj);
-			}else{//对方不在线
+			}else{//对方不在线保存消息到表CACHEMSG
 				var inSql = 'INSERT INTO CACHEMSG(username,firename,content) VALUES(?,?,?)';
 				connection.query(inSql,[obj.username,obj.firename,obj.content],function (err, result) {
 					if(err) {console.log('[login ERROR] - ',err.message); return;}
