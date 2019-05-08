@@ -1,7 +1,6 @@
 new Vue({
 		el: "#app",
 		data: {
-			name:'',
 			userid: '',
 			username: '少时诵诗书',
 			firename: '',
@@ -62,7 +61,7 @@ new Vue({
 		methods: {
 			getmesg(){
 				this.dialogVisible = true
-				this.name = (this.firename === '')?this.chatroom:this.firename;
+				// this.name = (this.firename === '')?this.chatroom:this.firename;
 				var param = {
 					firename:this.firename,
 					username:this.username,
@@ -339,6 +338,7 @@ new Vue({
 				//监听新用户登录
 				this.socket.on('login', function(o){
 					console.log(o.onlineUsers)
+					debugger
 					for(let i of _this.items){
 						if(o.onlineUsers[i.userid]){
 							i.online = '[在线]'

@@ -94,7 +94,7 @@ app.post('/register', function (req, res) {
    })
 });
 //新增房间
-app.post('/addroom',function (req,res) {//登录
+app.post('/addroom',function (req,res) {
     req.on('data',function(data){
         obj=JSON.parse(data);
 		var roomuser = obj.roomuser.toString()
