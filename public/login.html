@@ -51,10 +51,9 @@ body {
     margin-top: 20px;
     font-size: 13px;
     text-align: center;
-    color: #777777;
-    text-decoration: underline;
+    color: #777777;  
 }
-.toregister a{cursor: pointer;}
+.toregister a{cursor: pointer;text-decoration: underline;}
 
 input { 
 	width: 100%; 
@@ -82,22 +81,22 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 	<body>
 		<div id="app">
 			<div class="login" v-show="showlog">
-				<h1>Login</h1>
+				<h1>ZE聊天室</h1>
 				<form>
-					<input type="text" name="u" placeholder="Userid" required="required" v-model="usid" maxlength="10"/>
-					<input type="password" name="p" placeholder="Password" required="required" v-model="pwd" maxlength="10"/>
-					<button type="button" class="btn btn-primary btn-block btn-large" @click="login">Log in</button>
-					<div class="toregister"><a id="toregister" @click="showlog=false">to register</a></div>
+					<input type="text" name="u" placeholder="账号" required="required" v-model="usid" maxlength="10"/>
+					<input type="password" name="p" placeholder="密码" required="required" v-model="pwd" maxlength="10"/>
+					<button type="button" class="btn btn-primary btn-block btn-large" @click="login">登录</button>
+					<div class="toregister">没有账号？去<a id="toregister" @click="showlog=false">注册</a></div>
 				</form>
 			</div>
 			<div class="login" v-show="!showlog">
-				<h1>register</h1>
+				<h1>ZE聊天室</h1>
 				<form>
-					<input type="text" name="u" placeholder="Userid" required="required" v-model="reusid" maxlength="10"/>
-					<input type="password" name="p" placeholder="Password" required="required" v-model="repwd" maxlength="10"/>
-					<input type="text" name="n" placeholder="Nickname" required="required" v-model="rename" maxlength="10"/>
-					<button type="button" class="btn btn-primary btn-block btn-large" @click="register">Register</button>
-					<div class="toregister"><a id="tologin" @click="showlog=true">to login</a></div>
+					<input type="text" name="u" placeholder="账号" required="required" v-model="reusid" maxlength="10"/>
+					<input type="password" name="p" placeholder="密码" required="required" v-model="repwd" maxlength="10"/>
+					<input type="text" name="n" placeholder="昵称" required="required" v-model="rename" maxlength="10"/>
+					<button type="button" class="btn btn-primary btn-block btn-large" @click="register">注册</button>
+					<div class="toregister">已有账号？去<a id="tologin" @click="showlog=true">登录</a></div>
 				</form>
 			</div>
 		</div>	
@@ -115,10 +114,10 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 				methods: {
 					login: function () {
 						if(this.usid === ''){
-							this.$message.error('Userid不能为空！');
+							this.$message.error('账号不能为空！');
 							return;
 						}else if(this.pwd === ''){
-							this.$message.error('Password不能为空！');
+							this.$message.error('密码不能为空！');
 							return;
 						}
 						const param = {
@@ -144,13 +143,13 @@ input:focus { box-shadow: inset 0 -5px 45px rgba(100,100,100,0.4), 0 1px 1px rgb
 					},
 					register: function () {
 						if(this.reusid === ''){
-							this.$message.error('Userid不能为空！');
+							this.$message.error('账号不能为空！');
 							return;
 						}else if(this.repwd === ''){
-							this.$message.error('Password不能为空！');
+							this.$message.error('密码不能为空！');
 							return;
 						}else if(this.rename === ''){
-							this.$message.error('Nickname不能为空！');
+							this.$message.error('昵称不能为空！');
 							return;
 						}
 						const param = {

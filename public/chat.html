@@ -22,12 +22,12 @@
 		<div id="container" style="display: flex;height:700px;box-sizing: border-box;">
 			<div id="" class="aside">
 				<div class="addchatroom" @click="addroom">
-					Add Chatroom&nbsp;&nbsp;<i class="el-icon-plus"></i>
+					新建群组&nbsp;&nbsp;<i class="el-icon-plus"></i>
 				</div>
 				<el-menu active-text-color="#67C23A" class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
 					<el-submenu index="1">
 						<template slot="title">
-							<span>User</span>
+							<span>用户</span>
 						</template>
 						<el-menu-item :index="item.userid" v-for="(item,index) in items" :key="index" @click="checkuser(item.username,index)">{{item.username}}
 						<span :class="item.online=='[在线]'?'classa':'classb'">{{item.online}}</span>
@@ -36,7 +36,7 @@
 					</el-submenu>
 					<el-submenu index="2">
 						<template slot="title">
-							<span>Chatroom</span>
+							<span>群组</span>
 						</template>
 						<el-menu-item  :index="index" v-for="(room,index) in rooms" :key="index" @click="checkroom(room.roomname,index)">{{room.roomname}}</el-menu-item>
 					</el-submenu>
@@ -88,7 +88,7 @@
 				</div>
 			</div>
 		</div>
-		<el-dialog title="addroom" :visible.sync="dialogFormVisible" @close="closeadd" width="30%">
+		<el-dialog title="新增房间" :visible.sync="dialogFormVisible" @close="closeadd" width="30%">
 				<div style="height: 250px;">
 					<div class="checkdiv" style="border-right: 1px solid #EEEEEE;">
 						<div class="input-room" prop="pass">
